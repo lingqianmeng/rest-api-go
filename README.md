@@ -94,12 +94,6 @@ Invoke-RestMethod -Method Post -Uri "http://localhost:8080/books" `
   -Body '{"title":"The Alchemist", "author":"Paulo Coelho"}' `
   -ContentType "application/json"
 ```
-cURL Command:
-```
-curl -X POST -d '{"title":"The Alchemist", "author":"Paulo Coelho"}' \
-  -H "Content-Type: application/json" \
-  http://localhost:8080/books
-```
   
 ## 🛠️ Development Notes
 ### Database Persistence
