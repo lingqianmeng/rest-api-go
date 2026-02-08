@@ -8,116 +8,85 @@ import (
 	"net/http"
 
 	_ "github.com/glebarez/go-sqlite"
+
+	// Import own internal package
+	"bookstore-api/internal/models"
 )
 
-// Book represents our data model
-type Book struct {
-	ID     string `json:"id"`
-	Title  string `json:"title"`
-	Author string `json:"author"`
+// Application struct holds your dependencies (like the database model)
+type application struct {
+	books *models.BookModel
 }
 
 // In-memory database
+/*
 var books = []Book{
 	{ID: "1", Title: "The Go Programming Language", Author: "Alan Donovan"},
 }
+*/
 
-var db *sql.DB
-
-func initDB() {
-	var err error
-	// Open the connection to the file "books.db"
-	db, err = sql.Open("sqlite", "./books.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Create the table if it doesn't exist
-	sqlStmt := `
-	CREATE TABLE IF NOT EXISTS books (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		title TEXT,
-		author TEXT
-	);
-	`
-	_, err = db.Exec(sqlStmt)
-	if err != nil {
-		log.Fatalf("%q: %s\n", err, sqlStmt)
+// This is now a method of 'application', so it can access 'app.books'
+func (app *application) booksHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		app.getBooks(w, r)
+	case http.MethodPost:
+		app.createBook(w, r)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
 }
 
-// Handler: Get all books
-func getBooks(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.Query("SELECT id, title, author FROM books")
+func (app *application) getBooks(w http.ResponseWriter, r *http.Request) {
+	// Call the model! No SQL here.
+	books, err := app.books.GetAll()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Server Error", 500)
 		return
-	}
-	defer rows.Close()
-
-	var books []Book
-	for rows.Next() {
-		var b Book
-		if err := rows.Scan(&b.ID, &b.Title, &b.Author); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		books = append(books, b)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(books)
 }
 
-// Handler: Create a book
-func createBook(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+func (app *application) createBook(w http.ResponseWriter, r *http.Request) {
+	var input models.Book
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "Bad Request", 400)
 		return
 	}
 
-	var newBook Book
-	json.NewDecoder(r.Body).Decode(&newBook)
-
-	// Insert into database
-	stmt, err := db.Prepare("INSERT INTO books(title, author) VALUES(?, ?)")
+	// Call the model!
+	id, err := app.books.Insert(input.Title, input.Author)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer stmt.Close()
-
-	result, err := stmt.Exec(newBook.Title, newBook.Author)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Server Error", 500)
 		return
 	}
 
-	// Get the ID of the newly inserted book
-	id, _ := result.LastInsertId()
-	newBook.ID = fmt.Sprintf("%d", id)
-
+	input.ID = id
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(newBook)
+	json.NewEncoder(w).Encode(input)
 }
 
 func main() {
-	initDB()
+	// 1. Init Database
+	db, err := sql.Open("sqlite", "./books.db")
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer db.Close()
 
-	// Routing
-	http.HandleFunc("/books", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			getBooks(w, r)
-		case http.MethodPost:
-			createBook(w, r)
-		default:
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
-	})
+	// 2. Setup the model
+	// We check if the table exists here for simplicity
+	_, _ = db.Exec("CREATE TABLE IF NOT EXISTS books (id INTEGER PRIMARY KEY, title TEXT, author TEXT);")
 
+	// 3. Initialize the app struct
+	app := &application{
+		books: &models.BookModel{DB: db},
+	}
+
+	// 4. Start Server
 	fmt.Println("Server starting at :8080...")
-	http.ListenAndServe(":8080", nil)
+	http.HandleFunc("/books", app.booksHandler) // Use the method on 'app'
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
