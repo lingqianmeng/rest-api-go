@@ -14,9 +14,6 @@ Moved away from a single `main.go` file to a scalable structure:
 * **Why?** The standard driver requires a C-compiler (GCC), which causes frequent errors on Windows. The `glebarez` driver is "Pure Go," meaning it compiles instantly on Windows, Mac, and Linux with zero setup.
 
 ## 📂 Directory Structure
-
-Your project should look like this:
-
 ```text
 go-rest-api/
 ├── cmd/
@@ -65,9 +62,9 @@ Server starting at :8080...
 ### 1. Get All Books (GET)
 Retrieves the list of books from the SQLite database.
 
-Endpoint: ```/books```
+Endpoint: `/books`
 
-Method: ```GET```
+Method: `GET`
 
 PowerShell Command:
 ```
@@ -80,13 +77,13 @@ curl http://localhost:8080/books
 ### 2. Add a New Book (POST)
 Inserts a book into the database. The ID is auto-generated.
 
-Endpoint: ```/books ```
+Endpoint: `/books`
 
-Method: ```POST```
+Method: `POST`
 
-Headers: ```Content-Type: application/json```
+Headers: `Content-Type: application/json`
 
-Body: ```{"title": "String", "author": "String"}```
+Body: `{"title": "String", "author": "String"}`
 
 PowerShell Command:
 ```
@@ -97,12 +94,12 @@ Invoke-RestMethod -Method Post -Uri "http://localhost:8080/books" `
   
 ## 🛠️ Development Notes
 ### Database Persistence
-The application automatically creates a file named books.db in the root directory if it does not exist.
+The application automatically creates a file named `books.db` in the root directory if it does not exist.
 
 **Do not commit books.db to Git. It is your local development data.**
 
 ### Git Ignore Rules
-Ensure your .gitignore file contains the following to keep the repo clean:
+Ensure your `.gitignore` file contains the following to keep the repo clean:
 ```
 # Ignore the local database
 *.db
