@@ -118,13 +118,13 @@ Ensure your .gitignore file contains the following to keep the repo clean:
 *.test
 ```
 ## Common Issues
-### 1. Error: exec: "gcc": executable file not found
+### 1. Error: `exec: "gcc": executable file not found`
 
-Fix: You are likely using mattn/go-sqlite3. Switch to glebarez/go-sqlite in your imports and run go mod tidy.
+Fix: You are likely using `mattn/go-sqlite3`. Switch to `glebarez/go-sqlite` in your imports and run `go mod tidy`.
 
-### 2.Error: package cmd/api is not in GOROOT
+### 2. Error: `package cmd/api is not in GOROOT`
 
-Fix: Ensure you are running go run ./cmd/api from the root folder, not inside the cmd folder itself.
+Fix: Ensure you are running `go run ./cmd/api` from the root folder, not inside the cmd folder itself.
 
 ## 📄 License
 Open Source.
