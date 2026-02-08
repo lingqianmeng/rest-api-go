@@ -1,3 +1,4 @@
+[![Go Bookstore CI](https://github.com/lingqianmeng/rest-api-go/actions/workflows/go.yml/badge.svg)](https://github.com/lingqianmeng/rest-api-go/actions/workflows/go.yml)
 # Go Bookstore REST API (Pure Go SQLite)
 
 A robust, beginner-friendly REST API built with Go. This project demonstrates how to structure a professional Go application, handle database persistence without external C-compilers, and separate concerns using the Standard Go Project Layout.
