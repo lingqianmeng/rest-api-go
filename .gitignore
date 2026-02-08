@@ -1,0 +1,9 @@
+# Ignore the database file
+*.db
+
+# Ignore the executable (the .exe file created when you build)
+*.exe
+*.test
+
+# Ignore the vendor folder (if you ever use one)
+vendor/
